@@ -20,10 +20,21 @@ class PmsUbication(models.Model):
         for record in self:
             record.total_rooms_count = len(record.pms_room_ids)
 
-    def _get_total_rooms(self):
-        pms_property_id = self.env.user.get_active_property_ids()[0]
+    def _get_total_rooms(self, pms_property_id):
         rooms = self.env["pms.room"].search([
             ("pms_property_id", "=", pms_property_id),
             ("ubication_id", "=", self.id)
         ])
         return len(rooms)
+
+    def _get_occupied_rooms(self, pms_property_id):
+        if self._context.get("checkin") and self._context.get("checkout"):
+            room_ids = self.pms_room_ids.filtered(
+                lambda r: r.pms_property_id.id == pms_property_id
+            ).ids
+            return len(self.env["pms.availability"].get_rooms_not_avail(
+                checkin=self._context.get("checkin"),
+                checkout=self._context.get("checkout"),
+                room_ids=room_ids,
+                pms_property_id=pms_property_id,
+            ))

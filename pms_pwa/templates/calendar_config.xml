@@ -3,17 +3,7 @@
     <template id="roomdoo_calendar_config_page" name="Calendar config">
         <t t-call="website.layout">
             <t t-set="page_title" t-value="'Calendario de configuración'" />
-            <t t-if="request.httprequest.cookies.get('pms_pids', false)">
-                <t t-if="len(request.httprequest.cookies['pms_pids']) > 1">
-                    <t t-set="current_property" t-value="int(request.httprequest.cookies['pms_pids'].split(',')[0])" />
-                </t>
-                <t t-else="">
-                    <t t-set="current_property" t-value="int(request.httprequest.cookies['pms_pids'])" />
-                </t>
-            </t>
-            <t t-else="">
-                <t t-set="current_property" t-value="1" />
-            </t>
+            <t t-set="current_property" t-value="user_id.pms_pwa_property_id.id" />
             <div class="o_pms_pwa_roomdoo_reservation_modal" />
             <div class="o_pms_pwa_notifications o_pms_pwa_notifications_regular mt-4 row">
                 <span class="o_pms_notification_title col-2">
@@ -73,14 +63,14 @@
                                 </div>
                             </div>
                             <div id="buttom_save" class="col-6 col-sm-2">
-                                <form method="post" action="">
+                                <form method="post" action="/calendar/config">
                                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                                     <input type="hidden" name="selected_date" t-att-value="selected_date.strftime('%d/%m/%Y')"/>
                                     <select id="pricelist_select" name="pricelist" class="form-control o_website_form_input o_domain_leaf_operator_select o_input" onchange="javascript:this.form.submit()">
-                                        <option t-if="select_pricelist==0" selected="selected" value="">Todas</option>
-                                        <option t-if="select_pricelist==1" value="">Todas</option>
+                                        <option t-if="default_pricelist==0" selected="selected" value="0">Todas</option>
+                                        <option t-if="default_pricelist!=0" value="0">Todas</option>
                                         <t t-foreach="pricelist" t-as="price">
-                                            <t t-if="select_pricelist==price.id">
+                                            <t t-if="default_pricelist==price.id">
                                                 <option t-attf-value="{{ price.id }}" selected="selected"><t t-esc="price.name" /></option>
                                             </t>
                                             <t t-else="">
@@ -156,7 +146,7 @@
                                                         <i class="fa fa-2x fa-angle-left"></i>
                                                     </a>
                                                 </t>
-                                                <t t-esc="day" t-options='{"widget": "date", "format": "EEEE dd"}' />
+                                                <t t-esc="day" t-options='{"widget": "date", "format": "EEEE dd (MMM)"}' />
                                                 <t t-if="day_last">
                                                     <a t-att-href="'?next_day='+date_start.strftime('%d/%m/%Y')" class="float-right o_pms_pwa_calendar_arrow">
                                                         <i class="fa fa-2x fa-angle-right"></i>
@@ -177,8 +167,8 @@
                                                 </p>
                                             </td>
                                             <t t-foreach="len(date_list)" t-as="l">
-                                                <t t-set="total_rooms" t-value="obj._get_total_rooms()"></t>
-                                                <t t-set="availability_room" t-value="obj.with_context(checkin=date_list[l], checkout=date_list[l]+relativedelta(days=1), pms_property_id=current_property)._get_availability_rooms()"/>
+                                                <t t-set="total_rooms" t-value="obj._get_total_rooms(current_property)"></t>
+                                                <t t-set="availability_room" t-value="obj.with_context(checkin=date_list[l], checkout=date_list[l]+relativedelta(days=1), pms_property_id=current_property)._get_availability_rooms(current_property)"/>
                                                 <td t-att-class="'o_pms_pwa_table_cell '
                                                     + ('o_pms_pwa_dispo_0 ' if availability_room==0 else ' ')
                                                     + ('o_pms_pwa_dispo_1 ' if availability_room==1 else ' ')
@@ -193,7 +183,7 @@
                                         <tr>
                                             <td t-att-colspan="len(date_list)+1" class="o_pms_pwa_hiddenRow collapse" t-att-id="'collapse_accordion_'+str(obj.id)" t-attf-aria-labelledby="{{ obj.id }}" style="width:100% !important">
                                                 <table class="table" id="calendar_conf_table_line" style="border-collapse: separate; border-spacing: 8px;">
-                                                    <t t-foreach="pricelist" t-as="price">
+                                                    <t t-foreach="select_pricelist" t-as="price">
                                                         <tr t-attf-data-id="{{ price.id }}">
                                                             <td class="o_pms_pwa_show_table" data-toggle="collapse" t-attf-data-target="#collapse_2_accordion_{{price.id}}" aria-expanded="false" aria-controls="collapse_2_accordion_{{price.id}}">
                                                                 <i class="fa fa-angle-down ml-2"></i>
@@ -209,8 +199,8 @@
                                                                     + ('o_pms_pwa_dispo_0 ' if list_price['closed'] else ' ')" t-attf-data="{{ room_day }}">
                                                                     <p>
                                                                         <input t-attf-data-room="{{ obj.id }}" t-attf-data-pricelist="{{ price.id }}" t-attf-data-date="{{ date_list[room_day] }}" data-edit="false" t-attf-tabindex="{{ price.id }}1{{room_day}}" style="width:40px;float:left;" type="text" t-att-value="obj.product_id.with_context(quantity=1, consumption_date=date_list[room_day], pricelist=price.id, property=current_property).price" name="price" />
-                                                                        <input t-attf-data-room="{{ obj.id }}" t-attf-data-pricelist="{{ price.id }}" t-attf-data-date="{{ date_list[room_day] }}" data-edit="false" t-attf-tabindex="{{ price.id }}2{{room_day}}" style="width:40px;float:left; margin-left: 1rem;" type="text" t-attf-value="{{ list_price['min_stay'] }}" name="min_stay" />
-                                                                        <input t-attf-data-room="{{ obj.id }}" t-attf-data-pricelist="{{ price.id }}" t-attf-data-date="{{ date_list[room_day] }}" data-edit="false" t-attf-tabindex="{{ price.id }}3{{room_day}}" style="width:40px;float:left; margin-left: 1rem;" type="text" t-attf-value="{{ list_price['quota'] }}" name="quota" />
+                                                                        <input t-attf-data-room="{{ obj.id }}" t-attf-data-pricelist="{{ price.id }}" t-attf-data-date="{{ date_list[room_day] }}" data-edit="false" t-attf-tabindex="{{ price.id }}2{{room_day}}" style="width:40px;float:left; margin-left: 1rem;" type="text" t-attf-value="{{ list_price['quota'] }}" name="quota" />
+                                                                        <input t-attf-data-room="{{ obj.id }}" t-attf-data-pricelist="{{ price.id }}" t-attf-data-date="{{ date_list[room_day] }}" data-edit="false" t-attf-tabindex="{{ price.id }}3{{room_day}}" style="width:40px;float:left; margin-left: 1rem;" type="text" t-attf-value="{{ list_price['min_stay'] }}" name="min_stay" />
                                                                         <br />
                                                                     </p>
                                                                     <p style="margin-top:-1rem;">

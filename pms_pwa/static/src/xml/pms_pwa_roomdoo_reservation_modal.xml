@@ -223,7 +223,7 @@
                             <div class="col-sm-12">
                                 <div class="row o_pms_pwa_modal_header_pad">
                                     <h4 class="col-6 modal-title">
-                                        <t t-esc="texts.reservation_text || _t('Reserva')" />
+                                        <t t-if="reservation.pms_property_id" t-esc="reservation.pms_property_id.name"/>
                                         <span t-esc="reservation.name" />
                                     </h4>
                                     <a t-att-href="'/reservation/' + reservation.id" class="col-4 btn o_pms_pwa_btn_border float-right o_pms_pwa_preloader" t-att-data-id="reservation.id">
@@ -258,7 +258,7 @@
                                     <div class="col-3 align-self-center">
                                         <img t-att-src="'/web/image/pms.reservation/'+reservation.id+'/partner_image_128'" class="img-thumbnail rounded-circle o_pms_pwa_img_rounded_bg" t-att-title="reservation.partner_id.name" t-att-alt="reservation.partner_id.name" width="55" />
                                     </div>
-                                    <div class="col-9 ">
+                                    <div class="col-8 ">
                                         <div class="row">
                                             <div class="col-12">
                                                 <strong>
@@ -273,6 +273,7 @@
 
                                         </div>
                                     </div>
+                                    <i class="col-1 fa fa-pencil-square-o"></i>
                                 </div>
                                 <div class="progress mt-2">
                                     <div t-if="reservation.state == 'onboard'" class="progress-bar bg-success" role="progressbar" t-att-style="'width:'+ reservation.checkins_ratio + '%'" t-att-aria-valuenow="reservation.checkins_ratio" aria-valuemin="0" aria-valuemax="100"></div>
@@ -293,12 +294,12 @@
                                             </button>
                                             <div class="dropdown-menu btn-persona-info-item" aria-labelledby="dropdownMenuButton">
                                                 <t t-foreach="reservation.checkin_partner_ids" t-as="person">
-                                                    <a class="dropdown-item o_pms_pwa_button_checkin" t-attf-data-id="{{ reservation.id }}" t-attf-url="/reservation/{{ reservation.id }}/checkin" t-attf-data-target="#checkin_partner_{{person.id}}">
+                                                    <a class="dropdown-item o_pms_pwa_button_checkins" t-attf-data-id="{{ reservation.id }}" t-attf-url="/reservation/{{ reservation.id }}/checkin" t-attf-data-target="#checkin_partner_{{person.id}}">
                                                         <t t-if="person_value['firstname']">
                                                             <t t-esc="person_value['firstname']" /> <t t-esc="person_value['lastname']" />
                                                         </t>
                                                         <t t-else="">
-                                                            Desconocido
+                                                            Introducir datos de huésped
                                                         </t>
                                                     </a>
                                                 </t>

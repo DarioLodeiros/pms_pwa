@@ -46,13 +46,13 @@ odoo.define("pms_pwa.reservation_table", function (require) {
                 "_onClickReservationButton",
             "click td.o_pms_pwa_calendar_reservation": "_onClickReservationButton",
             "click td.launch_modal": "_onClickReservationButton",
-            "click .o_pms_pwa_button_assign": "_onClickAssingButton",
+            "click .o_pms_pwa_button_asignar": "_onClickAssingButton",
             "click tbody > tr > td:not(:last-child) a": "_onClickNotLastChildA",
-            "click .o_pms_pwa_button_checkin": "_onClickCheckinButton",
-            "click .o_pms_pwa_button_cancel": "_onClickCancelButton",
+            "click .o_pms_pwa_button_checkins": "_onClickCheckinButton",
+            "click .o_pms_pwa_button_cancelar": "_onClickCancelButton",
             "click .o_pms_pwa_button_checkout": "_onClickCheckoutButton",
-            "click .o_pms_pwa_button_payment": "_onClickPaymentButton",
-            "click .o_pms_pwa_button_invoice": "_onClickInvoiceButton",
+            "click .o_pms_pwa_button_pagar": "_onClickPaymentButton",
+            "click .o_pms_pwa_button_facturar": "_onClickInvoiceButton",
         },
         /**
          * @override
@@ -89,7 +89,7 @@ odoo.define("pms_pwa.reservation_table", function (require) {
         },
         modalButtonsOnChange: function () {
             var self = this;
-            $("div.o_pms_pwa_modal_buttons button.o_pms_pwa_button_assign").on(
+            $("div.o_pms_pwa_modal_buttons button.o_pms_pwa_button_asignar").on(
                 "click",
                 function (event) {
                     event.preventDefault();
@@ -98,7 +98,7 @@ odoo.define("pms_pwa.reservation_table", function (require) {
             );
 
             $(
-                "div.o_pms_pwa_modal_buttons button.o_pms_pwa_button_checkin, a.o_pms_pwa_button_checkin"
+                "div.o_pms_pwa_modal_buttons button.o_pms_pwa_button_checkins, a.o_pms_pwa_button_checkins"
             ).on("click", function (event) {
                 event.preventDefault();
                 self._onClickCheckinButton(event);
@@ -112,7 +112,7 @@ odoo.define("pms_pwa.reservation_table", function (require) {
                 }
             );
 
-            $("div.o_pms_pwa_modal_buttons button.o_pms_pwa_button_payment").on(
+            $("div.o_pms_pwa_modal_buttons button.o_pms_pwa_button_pagar").on(
                 "click",
                 function (event) {
                     event.preventDefault();
@@ -120,7 +120,7 @@ odoo.define("pms_pwa.reservation_table", function (require) {
                 }
             );
 
-            $("div.o_pms_pwa_modal_buttons button.o_pms_pwa_button_invoice").on(
+            $("div.o_pms_pwa_modal_buttons button.o_pms_pwa_button_facturar").on(
                 "click",
                 function (event) {
                     event.preventDefault();
@@ -128,7 +128,7 @@ odoo.define("pms_pwa.reservation_table", function (require) {
                 }
             );
 
-            $("div.o_pms_pwa_modal_buttons button.o_pms_pwa_button_cancel").on(
+            $("div.o_pms_pwa_modal_buttons button.o_pms_pwa_button_cancelar").on(
                 "click",
                 function (event) {
                     event.preventDefault();
@@ -887,19 +887,18 @@ odoo.define("pms_pwa.reservation_table", function (require) {
                                             });
 
                                             // refresh total
-                                            let a = document.getElementsByClassName(
-                                                "price_total"
+                                            let a = $(
+                                                "form.o_pms_pwa_reservation_form .price_total"
                                             );
-                                            a.innerText = JSON.parse(
+                                            a[0].innerHTML = JSON.parse(
                                                 new_data
                                             ).reservation.price_total;
-
-                                            // refresh pending amount.
+                                            // refresh pending amount
                                             try {
-                                                let b = document.getElementsByClassName(
-                                                    "pending_amount"
+                                                let b = $(
+                                                    "form.o_pms_pwa_reservation_form .pending_amount"
                                                 );
-                                                b.innerText = JSON.parse(
+                                                b[0].innerHTML = JSON.parse(
                                                     new_data
                                                 ).reservation.folio_pending_amount;
                                             } catch (error) {
@@ -936,11 +935,11 @@ odoo.define("pms_pwa.reservation_table", function (require) {
                         });
 
                         // On click to change adults or kids
-                        $(".btn-o_pms_pwa_min_max").on("click", function (
-                            new_event
-                        ) {
+                        $(".btn-o_pms_pwa_min_max").on("click", function (new_event) {
                             new_event.preventDefault();
-                            $('input[type="number"].o_pms_pwa_num-control').trigger("change");
+                            $('input[type="number"].o_pms_pwa_num-control').trigger(
+                                "change"
+                            );
                         });
 
                         // DATE RANGE MODAL

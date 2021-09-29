@@ -264,10 +264,11 @@ class PmsReservation(http.Controller):
                     lines_to_invoice = dict()
                     for value in invoice_lines:
                         lines_to_invoice[value[0]["id"]] = value[0]["qty"]
-                    reservation.folio_id._create_invoices(
+                    invoices = reservation.folio_id._create_invoices(
                         lines_to_invoice=lines_to_invoice,
                         partner_invoice_id=partner_invoice_id,
                     )
+                    invoices.action_post()
                 except Exception as e:
                     return json.dumps({"result": False, "message": str(e)})
                 return json.dumps(
@@ -290,6 +291,7 @@ class PmsReservation(http.Controller):
         reservation = request.env["pms.reservation"].browse([reservation_id])
         if not reservation:
             raise MissingError(_("This document does not exist."))
+        readonly_fields = reservation._get_readonly_fields()
         values = {
             "page_name": "Reservation",
             "reservation": reservation,
@@ -665,7 +667,8 @@ class PmsReservation(http.Controller):
         params = http.request.jsonrequest.get("params")
         _logger.info(params)
         try:
-            reservation_ids = [int(item) for item in params["reservation_ids"]]
+            # TODO: Hot FIX quit 'on' of params
+            reservation_ids = [int(item) for item in params["reservation_ids"] if item != "on"]
             reservations = request.env["pms.reservation"].browse(reservation_ids)
             reservations.action_assign()
         except Exception as e:
@@ -684,7 +687,7 @@ class PmsReservation(http.Controller):
     def reservation_multi_cancel(self, **kw):
         params = http.request.jsonrequest.get("params")
         try:
-            reservation_ids = [int(item) for item in params["reservation_ids"]]
+            reservation_ids = [int(item) for item in params["reservation_ids"] if item != "on"]
             reservations = request.env["pms.reservation"].browse(reservation_ids)
             reservations.action_cancel()
         except Exception as e:
@@ -703,7 +706,7 @@ class PmsReservation(http.Controller):
     def reservation_multi_checkout(self, **kw):
         params = http.request.jsonrequest.get("params")
         try:
-            reservation_ids = [int(item) for item in params["reservation_ids"]]
+            reservation_ids = [int(item) for item in params["reservation_ids"] if item != "on"]
             reservations = request.env["pms.reservation"].browse(reservation_ids)
             reservations.action_reservation_checkout()
         except Exception as e:
@@ -724,7 +727,7 @@ class PmsReservation(http.Controller):
         params = http.request.jsonrequest.get("params")
 
         try:
-            reservation_ids = [int(item) for item in params["reservation_ids"]]
+            reservation_ids = [int(item) for item in params["reservation_ids"] if item != "on"]
             reservations = request.env["pms.reservation"].browse(reservation_ids)
             checkins = reservations.checkin_partner_ids
             pdf = (
@@ -766,7 +769,7 @@ class PmsReservation(http.Controller):
         new_discount = False
         new_board_service_id = False
         try:
-            reservation_ids = [int(item) for item in params["reservation_ids"]]
+            reservation_ids = [int(item) for item in params["reservation_ids"] if item != "on"]
             reservations = request.env["pms.reservation"].browse(reservation_ids)
             if params["apply_on_all_week"]:
                 apply_on_all_week = True

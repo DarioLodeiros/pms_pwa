@@ -59,17 +59,15 @@ class BookingEngine(http.Controller):
                 )
 
             # Pms Property
-            pms_property_id = False
-            pms_property = False
-            # HOTFIX: PROPERTY SIEMPRE VALE 1 en VALS
-            # if "pms_property_id" in folio_values:
-            #     pms_property_id = int(folio_values["pms_property_id"])
-            #     pms_property = request.env["pms.property"].browse(pms_property_id)
-            # elif request.env.user.get_active_property_ids():
-            pms_property_id = request.env.user.get_active_property_ids()[0]
-            pms_property = request.env["pms.property"].browse(pms_property_id)
+            # TODO:Enviar correctamente el pms_property_id seleccionado
+            if folio_values.get("pms_property_id"):
+                pms_property = request.env["pms.property"].browse(
+                    int(folio_values["pms_property_id"])
+                )
+            else:
+                pms_property = request.env.user.pms_pwa_property_id
+            pms_property_id = pms_property.id
             folio_values["pms_property_id"] = pms_property_id
-
             # Pricelist
             pricelist = False
             if folio_values.get("pricelist_id"):
@@ -170,6 +168,17 @@ class BookingEngine(http.Controller):
                     "name": room_type.name,
                 }
 
+            # Parse Pricelist
+            folio_values["pricelist_id"] = {
+                "id": pricelist.id,
+                "name": pricelist.name,
+            }
+
+            folio_values["pms_property_id"] = {
+                "id": pms_property.id,
+                "name": pms_property.name,
+            }
+
             _logger.info(folio_values)
 
             return folio_values
@@ -181,7 +190,7 @@ class BookingEngine(http.Controller):
         selection_fields = {}
         selection_fields["allowed_pricelists"] = request.env[
             "pms.reservation"
-        ]._get_allowed_pricelists(channel_type.id)
+        ]._get_allowed_pricelists([pms_property.id], channel_type.id)
         selection_fields["allowed_segmentations"] = request.env[
             "pms.reservation"
         ]._get_allowed_segmentations()
@@ -377,6 +386,9 @@ class BookingEngine(http.Controller):
 
     def get_header_groups(self, vals):
         groups = []
+        rooms = request.env["pms.room"].search([
+            ("pms_property_id", "=", vals["pms_property_id"])
+        ])
         if vals.get("agrupation_type") == "all":
             groups = [
                 {
@@ -388,13 +400,7 @@ class BookingEngine(http.Controller):
             ]
         elif vals.get("agrupation_type") == "room_type":
             groups = []
-            for room_type in request.env["pms.room.type"].search(
-                [
-                    "|",
-                    ("pms_property_ids", "in", vals["pms_property_id"]),
-                    ("pms_property_ids", "=", False),
-                ]
-            ):
+            for room_type in request.env["pms.room.type"].browse(rooms.mapped("room_type_id.id")):
                 groups.append(
                     {
                         "group_id": room_type.id,
@@ -405,13 +411,7 @@ class BookingEngine(http.Controller):
                 )
         elif vals.get("agrupation_type") == "ubication":
             groups = []
-            for ubication in request.env["pms.ubication"].search(
-                [
-                    "|",
-                    ("pms_property_ids", "in", vals["pms_property_id"]),
-                    ("pms_property_ids", "=", False),
-                ]
-            ):
+            for ubication in request.env["pms.ubication"].browse(rooms.mapped("ubication_id.id")):
                 groups.append(
                     {
                         "group_id": ubication.id,
@@ -614,12 +614,15 @@ class BookingEngine(http.Controller):
         try:
             # HEADER VALUES -----------------------------------------------------------
             # Pms Property
-            pms_property_id = False
-            pms_property = False
-            if request.env.user.get_active_property_ids():
-                pms_property_id = request.env.user.get_active_property_ids()[0]
-                pms_property = request.env["pms.property"].browse(pms_property_id)
+            # TODO: Recibir correctamente el property seleccionado
+            if folio_values.get("pms_property_id"):
+                pms_property = request.env["pms.property"].browse(
+                    int(folio_values["pms_property_id"])
+                )
+            else:
+                pms_property = request.env.user.pms_pwa_property_id
 
+            vals["pms_property_id"] = pms_property.id
             # Partner values
             vals["partner_name"] = folio_values["partner_name"]
             if folio_values.get("email") and folio_values.get("email") != "":
