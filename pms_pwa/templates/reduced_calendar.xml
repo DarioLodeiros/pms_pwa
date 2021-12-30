@@ -238,9 +238,6 @@
                                                         <div style="col border-radius: 5%; background-color:rgb(207 255 153 / 0%); margin-right:80px; margin-left:3px; height:5px;"/>
                                                     </span>
                                                 </div>
-                                                <div class="float-center">
-                                                    <t t-esc="percent_occupied"  t-options="{'widget': 'float', 'precision': 0}"/> %
-                                                </div>
                                             </th>
                                         </t>
                                     </tr>
@@ -261,13 +258,16 @@
                                             <t t-set="availability_room" t-value="general_headers[day]['property_header']['num_avail']"></t>
                                             <t t-set="rooms_occupied_reservations" t-value="general_headers[day]['property_header']['reservations_count']"></t>
                                             <t t-set="rooms_occupied_out_service" t-value="general_headers[day]['property_header']['outs_count']"></t>
-
-                                            <td t-att-class="'o_config_pms_pwa_table_cell '
+                                            <t t-set="percent_occupied" t-value="general_headers[day]['property_header']['percent_occupied']"></t>
+                                            <td t-att-class="'o_calendar_header_property '
                                                 + ('o_pms_pwa_dispo_0' if availability_room==0 else ' ')
                                                 + ('o_pms_pwa_dispo_1' if availability_room==1 else ' ')
                                             "
                                                 style="padding: 0 !important;"
                                             >
+                                                <div class="float-center o_pms_pwa_title" style="text-align: center !important; font-weight: bold !important; margin-bottom: 0px !important;">
+                                                    <t t-esc="percent_occupied"  t-options="{'widget': 'float', 'precision': 0}"/> %
+                                                </div>
                                                 <p class="o_pms_pwa_title" style="text-align: center !important; margin-bottom: 0px !important;">
                                                     <t t-esc="availability_room"/> Libres
                                                 </p>
@@ -381,7 +381,7 @@
                                                 </td>
                                             </t>
                                         </tr>
-                                        <tr>
+                                        <!-- <tr>
                                             <td
                                               t-att-colspan="len(date_list)+1"
                                               t-attf-aria-labelledby="{{ room['id'] }}"
@@ -563,7 +563,7 @@
                                                     </tr>
                                                 </table>
                                             </td>
-                                        </tr>
+                                        </tr> -->
                                     </t>
                                 </tbody>
                             </table>

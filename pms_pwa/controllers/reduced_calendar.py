@@ -50,7 +50,6 @@ class PmsCalendar(http.Controller):
         print("json ---> ", post)
         return self._get_calendar_values(post)
 
-
     def _get_calendar_values(self, post):
         pms_property_id = self._get_property(post)
 
